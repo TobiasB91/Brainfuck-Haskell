@@ -1,6 +1,7 @@
 module Main where
 
 import BFParser
+import Statement
 import Data.Char
 import System.IO
 import System.Environment
@@ -19,7 +20,7 @@ eval (MoveR:st) (M l x r) = case r of
     (r':rs) -> eval st $ M (x:l) r' rs
 eval ((Loop xs):st) (M l x r) = case x of
     0 -> eval st $ M l x r
-    _ -> eval xs (M l x r) >>= \m -> eval ((Loop xs):st) m
+    _ -> eval xs (M l x r) >>= eval ((Loop xs):st)
 eval (Increment:st) (M l x r) = eval st $ M l (x+1) r
 eval (Decrement:st) (M l x r) = eval st $ M l (x-1) r
 eval (Output:st) (M l x r) = (putStr . (:[]) . chr) x >> eval st (M l x r)

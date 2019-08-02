@@ -3,8 +3,8 @@ module BFParser (parseStmts, Statement(..)) where
 import Control.Monad
 import Control.Applicative
 import Parser
+import Statement
 
-data Statement = MoveL | MoveR | Increment | Decrement | Output | Input | Loop [Statement] | EOF | Skip deriving (Show, Eq)
 
 moveL :: Parser Statement
 moveL = char '<' >> return MoveL
