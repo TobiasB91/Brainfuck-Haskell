@@ -1,55 +1,61 @@
 module BFParser (parseStmts, Statement(..)) where
 
 import Control.Monad
+import Control.Monad.Free
 import Control.Applicative
 import Parser
-import Statement
+import Statement (Statement(..))
+import qualified Statement as S
 
 
-moveL :: Parser Statement
-moveL = char '<' >> return MoveL
+moveL :: Parser (Free Statement ())
+moveL = char '<' >> return S.moveL
 
-moveR :: Parser Statement
-moveR = char '>' >> return MoveR
+moveR :: Parser (Free Statement ())
+moveR = char '>' >> return S.moveR
 
-increment :: Parser Statement
-increment = char '+' >> return Increment
+increment :: Parser (Free Statement ())
+increment = char '+' >> return S.increment
 
-decrement :: Parser Statement
-decrement = char '-' >> return Decrement
+decrement :: Parser (Free Statement ())
+decrement = char '-' >> return S.decrement
 
-output :: Parser Statement
-output = char '.' >> return Output
+output :: Parser (Free Statement ())
+output = char '.' >> return S.output
 
-input :: Parser Statement
-input = char ',' >> return Input 
+input :: Parser (Free Statement ())
+input = char ',' >> return S.input 
 
-loop :: Parser Statement
+loop :: Parser (Free Statement ())
 loop = do
-    char '[' 
-    xs <- many stmt
-    char ']'
-    return $ Loop xs
+  char '[' 
+  s <- stmts
+  char ']'
+  return $ Free (Loop 
+      
 
-skip :: Parser Statement
-skip = satisfy (not . flip elem "[]") >> return Skip
+skip :: Parser (Free Statement ())
+skip = satisfy (not . flip elem "[]") >> return S.skip
 
-eof :: Parser Statement
-eof = return EOF
+eof :: Parser (Free Statement ())
+eof = return S.eof
 
-stmt :: Parser Statement 
+stmt :: Parser (Free Statement ()) 
 stmt = moveR <|> moveL <|> increment <|> decrement 
     <|> output <|> input <|> loop <|> skip  
 
-stmts :: Parser [Statement]
+stmts :: Parser (Free Statement ()) 
 stmts = do
-    s <- stmt <|> eof
-    case s of
-        EOF  -> return [EOF]
-        _    -> stmts >>= \xs -> return $ s:xs
+  s <- stmt <|> eof 
+  case s of 
+    Free EOF -> return $ Free EOF
+    act      -> (act >>) <$> stmts 
 
+{-
 parseStmts :: String -> [Statement]
 parseStmts inp = case parse stmts inp of
     [(st, "")] -> st
     [(st, r)]  -> error $ "Parse error on input '" ++ [head r] 
         ++ "' (" ++ show (length inp - length r) ++ ")"
+
+-}
