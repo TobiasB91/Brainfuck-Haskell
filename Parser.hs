@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module Parser where
 
 import Control.Monad
@@ -34,9 +35,9 @@ instance MonadPlus Parser where
     mplus a b = Parser $ \cs -> parse a cs ++ parse b cs 
 
 item :: Parser Char
-item = Parser $ \s -> case s of
-    ""     -> []
-    (c:cs) -> [(c,cs)] 
+item = Parser $ \case
+  ""     -> []
+  (c:cs) -> [(c,cs)] 
 
 satisfy :: (Char -> Bool) -> Parser Char
 satisfy p = item >>= \c -> if p c then return c else mzero

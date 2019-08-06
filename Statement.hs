@@ -1,7 +1,8 @@
-{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor, ScopedTypeVariables #-}
 
 module Statement where
 
+import Control.Monad
 import Control.Monad.Free
 
 data Statement a = 
@@ -11,34 +12,27 @@ data Statement a =
   | Decrement a
   | Output a
   | Input a
-  | Loop a a 
-  | Skip a 
-  | EOF deriving Functor 
+  | Loop (Free Statement ()) a
+  | Skip a deriving Functor 
 
+moveL, moveR, increment, decrement, 
+  output, input, skip, eof  :: Free Statement () 
 
-moveL :: Free Statement () 
 moveL = liftF (MoveL ())
 
-moveR :: Free Statement () 
 moveR = liftF (MoveR ())
 
-increment :: Free Statement () 
 increment = liftF (Increment ())
 
-decrement :: Free Statement () 
 decrement = liftF (Decrement ())
 
-output :: Free Statement () 
 output = liftF (Output ())
 
-input :: Free Statement () 
 input = liftF (Input ())
 
-loop :: Free Statement () 
-loop = undefined 
+loop :: Free Statement () -> Free Statement ()
+loop bdy = liftF $ Loop bdy ()
 
-skip :: Free Statement ()
 skip = liftF (Skip ())
 
-eof :: Free Statement r
-eof = Free EOF
+eof = Pure ()  
